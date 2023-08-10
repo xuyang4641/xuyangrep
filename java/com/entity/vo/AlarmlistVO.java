@@ -65,6 +65,12 @@ public class AlarmlistVO  implements Serializable {
 	private String src;
 
 	/**
+	 * 检测设备ID
+	 */
+
+	private String devid;
+
+	/**
 	 * 设置：故障类型
 	 */
 	 
@@ -150,7 +156,20 @@ public class AlarmlistVO  implements Serializable {
 	public void settrainid(String trainid) {
 		this.trainid = trainid;
 	}
-	
+
+	/**
+	 * 设置：检测设备
+	 */
+	public void setDevid(String devid) {
+		this.devid = devid;
+	}
+	/**
+	 * 获取：检测设备
+	 */
+	public String getDevid() {
+		return devid;
+	}
+
 	/**
 	 * 获取：车辆号
 	 */

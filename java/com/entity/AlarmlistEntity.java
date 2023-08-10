@@ -98,6 +98,12 @@ public class AlarmlistEntity<T> implements Serializable {
 	 */
 
 	private String src;
+
+	/**
+	 * 检测设备id
+	 */
+
+	private String devid;
 	
 	
 	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
@@ -190,6 +196,20 @@ public class AlarmlistEntity<T> implements Serializable {
 	public String getSrc() {
 		return src;
 	}
+
+	/**
+	 * 设置：检测设备
+	 */
+	public void setDevid(String devid) {
+		this.devid = devid;
+	}
+	/**
+	 * 获取：检测设备
+	 */
+	public String getDevid() {
+		return devid;
+	}
+
 	/**
 	 * 设置：车辆号
 	 */

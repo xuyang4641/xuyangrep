@@ -1,19 +1,21 @@
 package com.websocket;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.cj.protocol.Resultset;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.sql.DataSource;
 import javax.websocket.*;
-
+import java.util.*;
 import javax.websocket.server.ServerEndpoint;
 /**
 
@@ -40,6 +42,10 @@ public class WebSocketTest {
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
 
     private Session session;
+    private long index=0;
+    private int pageSize=30;
+
+    private String devid="123";
 
     /**
 
@@ -94,23 +100,52 @@ public class WebSocketTest {
     @OnMessage
 
     public void onMessage(String message, Session session) throws SQLException {
-        int page=0;
-        int size=0;
         Timestamp startTime,endTime;
         System.out.println("来自客户端的消息:" + message);
 
         JSONObject josonObject = new JSONObject(message);
+        JSONObject jsendObj = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        JSONObject innerJsonObject = new JSONObject();
+
         if(josonObject.has("instructionCode")){
-            if(josonObject.getString("instructionCode")=="getWarningList"){
+            if(josonObject.getString("instructionCode").equals("getWarningList")){
+                System.out.println("run2");
                 DataSource dataSource = new MysqlDataSource();
                 ((MysqlDataSource)dataSource).setURL("jdbc:mysql://127.0.0.1:3306/ssmp302b?useUnicode=true&characterEncoding=UTF-8&tinyInt1isBit=false&serverTimezone=GMT%2B8");
                 ((MysqlDataSource)dataSource).setUser("root");
                 ((MysqlDataSource)dataSource).setPassword("root");
+                System.out.println("run3");
                 //建立连接
                 Connection connection = dataSource.getConnection();
-                String sql="select * from ";
+                //String sql="select * from alarmlist ORDER BY id DESC LIMIT ?,30";
                 // jdbc 中还需要搭配一个特定的对象, 来描述这里的 sql 的情况
-                PreparedStatement statement= connection.prepareStatement(sql);
+                PreparedStatement statement= connection.prepareStatement("select * from alarmlist where devid="+devid+" ORDER BY id DESC LIMIT "+index+","+pageSize);
+                System.out.println("run4");
+                ResultSet resultSet =statement.executeQuery();
+                resultSet.beforeFirst();
+                while(resultSet.next()){
+                    System.out.println("id: " + resultSet.getLong("id"));
+                    System.out.println("alarmid: " + resultSet.getString("alarmid"));
+                    System.out.println("alarmtype: " + resultSet.getString("alarmtype"));
+                    innerJsonObject.put("alarmId",resultSet.getString("alarmid"));
+                    innerJsonObject.put("trainNum",resultSet.getString("trainid"));
+                    innerJsonObject.put("fleetNum","0");
+                    innerJsonObject.put("carNum",resultSet.getString("carriageno"));
+                    innerJsonObject.put("faultType",resultSet.getString("alarmtype"));
+                    innerJsonObject.put("faultLevel",resultSet.getString("alarmlevel"));
+                    innerJsonObject.put("detectionPart",resultSet.getString("position"));
+                    innerJsonObject.put("detectionArea",resultSet.getString("region"));
+                    innerJsonObject.put("detectionTime",resultSet.getTimestamp("addtime"));
+                    innerJsonObject.put("reportingTime",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                    innerJsonObject.put("imageId",resultSet.getString("src"));
+                    jsonArray.put(innerJsonObject);
+                }
+                jsendObj.put("terminalId","f487c56f29eb");
+                jsendObj.put("robotId","5cea1e22f112");
+                jsendObj.put("instructionCode","replyWarningList");
+                jsendObj.put("instructionNo","16446582605221234784");
+                jsendObj.put("warningList",jsonArray);
             }
         }
         else{
@@ -122,7 +157,7 @@ public class WebSocketTest {
 
             try {
                 if(item.getSession()==session){
-                    item.sendMessage(message);
+                    item.sendMessage(jsendObj.toString());
                 }
 
             } catch (IOException e) {
