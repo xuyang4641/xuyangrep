@@ -44,6 +44,8 @@ public class WebSocketTest {
     private Session session;
     private long index=0;
     private int pageSize=30;
+    private String terminalId;
+    private String robotId;
 
     private String devid="123";
 
@@ -147,6 +149,40 @@ public class WebSocketTest {
                 jsendObj.put("instructionNo","16446582605221234784");
                 jsendObj.put("warningList",jsonArray);
             }
+            else if(josonObject.getString("instructionCode").equals("reportLoginInfo")){
+                String instructionNo;
+                instructionNo = josonObject.getString("instructionNo");
+                terminalId = josonObject.getString("terminalId");
+                robotId = josonObject.getString("robotId");
+                jsendObj.put("robotId",robotId);
+                jsendObj.put("instructionCode","replyLoginInfo");
+                jsendObj.put("instructionNo",instructionNo);
+                jsendObj.put("terminalId",terminalId);
+            }
+            else if(josonObject.getString("instructionCode").equals("reportHeartbeat")){
+                if(!josonObject.getString("terminalId").equals(terminalId)){
+                    System.out.println("get err terminalId:"+josonObject.getString("terminalId"));
+                }
+                if(!josonObject.getString("robotId").equals(robotId)){
+                    System.out.println("get err robotId:"+josonObject.getString("robotId"));
+                }
+                jsendObj.put("terminalId",terminalId);
+                jsendObj.put("robotId",robotId);
+                jsendObj.put("instructionCode","replyHeartbeat");
+                jsendObj.put("instructionNo",josonObject.getString("instructionNo"));
+            }
+            else if(josonObject.getString("instructionCode").equals("replyWarningInfo")){
+                System.out.println("recv replyWarningInfo!!!");
+            }
+            else if(josonObject.getString("instructionCode").equals("getWarningImage")){
+                System.out.println("recv getWarningImage!!!");
+                jsendObj.put("terminalId",terminalId);
+                jsendObj.put("robotId",robotId);
+                jsendObj.put("instructionCode","replyWarningImage");
+                jsendObj.put("instructionNo",josonObject.getString("instructionNo"));
+                jsendObj.put("imageId",josonObject.getString("imageId"));
+                jsendObj.put("ImageUrl","http://192.168.1.17:8080/XXXX/XXXX/"+josonObject.getString("imageId"));
+            }
         }
         else{
             System.out.println("recv err!!!");
@@ -233,4 +269,19 @@ public class WebSocketTest {
         return this.session;
     }
 
+    public String getTerminalId() {
+        return terminalId;
+    }
+
+    public void setTerminalId(String terminalId) {
+        this.terminalId = terminalId;
+    }
+
+    public String getRobotId() {
+        return robotId;
+    }
+
+    public void setRobotId(String robotId) {
+        this.robotId = robotId;
+    }
 }
